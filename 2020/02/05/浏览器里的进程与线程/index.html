@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="上章讲完了线程、进程以及两者的联系与区别，今天来讲讲浏览器里的进程与线程 浏览器的多进程首先明确一点，浏览器内是包含多个进程的。浏览器内进程的运行，依赖于系统为其分配的资源（CPU，内存等）。浏览器内包括哪些进程？下面我们一一列举：  Browser进程  这个进程是浏览器的主进程，可以控制其他进程的生成或销毁，在整个浏览器应用程序中只有一个。 除了控制其他进程，Browser进程还负责与用户的交">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浏览器里的进程与线程">
+<meta property="og:url" content="http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="上章讲完了线程、进程以及两者的联系与区别，今天来讲讲浏览器里的进程与线程 浏览器的多进程首先明确一点，浏览器内是包含多个进程的。浏览器内进程的运行，依赖于系统为其分配的资源（CPU，内存等）。浏览器内包括哪些进程？下面我们一一列举：  Browser进程  这个进程是浏览器的主进程，可以控制其他进程的生成或销毁，在整个浏览器应用程序中只有一个。 除了控制其他进程，Browser进程还负责与用户的交">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-02-05T12:46:47.817Z">
+<meta property="article:modified_time" content="2020-02-05T12:46:47.818Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>浏览器里的进程与线程</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/projects_url">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/2020/02/05/%E7%BA%BF%E7%A8%8B%E4%B8%8E%E8%BF%9B%E7%A8%8B%E5%85%A5%E9%97%A8/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&text=浏览器里的进程与线程" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&title=浏览器里的进程与线程" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&is_video=false&description=浏览器里的进程与线程" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=浏览器里的进程与线程&body=Check out this article: http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&title=浏览器里的进程与线程" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&title=浏览器里的进程与线程" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&title=浏览器里的进程与线程" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&title=浏览器里的进程与线程" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&name=浏览器里的进程与线程&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&t=浏览器里的进程与线程" target="_blank" rel="noopener"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#浏览器的多进程"><span class="toc-number">1.</span> <span class="toc-text">浏览器的多进程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#浏览器内核的多线程"><span class="toc-number">2.</span> <span class="toc-text">浏览器内核的多线程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#由各线程之间的关系到事件循环详解"><span class="toc-number">3.</span> <span class="toc-text">由各线程之间的关系到事件循环详解</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        浏览器里的进程与线程
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Hexo</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-02-05T12:46:47.817Z" itemprop="datePublished">2020-02-05</time>
+        
+      
+    </div>
+
+
+      
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>上章讲完了线程、进程以及两者的联系与区别，今天来讲讲浏览器里的进程与线程</p>
+<h3 id="浏览器的多进程"><a href="#浏览器的多进程" class="headerlink" title="浏览器的多进程"></a>浏览器的多进程</h3><p>首先明确一点，浏览器内是包含多个进程的。浏览器内进程的运行，依赖于系统为其分配的资源（CPU，内存等）。浏览器内包括哪些进程？下面我们一一列举：</p>
+<ul>
+<li>Browser进程<br>  这个进程是浏览器的主进程，可以控制其他进程的生成或销毁，在整个浏览器应用程序中只有一个。<br> 除了控制其他进程，Browser进程还负责与用户的交互，如前进、后退；控制网络资源的下载等。</li>
+<li>第三方插件进程<br>  这个进程随着浏览器第三方插件的安装而存在，每安装一个插件，都会生成对于的插件的进程</li>
+<li>GPU进程<br>  最多一个，负责3D绘制等</li>
+<li>Render进程<br>  这个进程又称浏览器渲染进程，也就是我们常说的 浏览器内核 。这个进程主要负责页面渲染、页面事件的处理、js脚本的执行等。我们每在浏览器里打开一个tab页，都会创建一个Render进程（如果打开的是多个空白页，可能出现多个进程合并的情况）<h3 id="浏览器内核的多线程"><a href="#浏览器内核的多线程" class="headerlink" title="浏览器内核的多线程"></a>浏览器内核的多线程</h3>作为前端开发，在浏览器的众多进程中，我们需要详细深究的就是浏览器渲染进程啦。在每一个浏览器渲染进程中，都存在着不同种类的线程，这些线程互相作用，共同完成浏览器页面的渲染任务：</li>
+</ul>
+<ul>
+<li>GUI渲染线程<br>  负责渲染浏览器界面，解析HTML，CSS，构建DOM树和RenderObject树，布局和绘制等。<br>  当界面需要重绘（Repaint）或由于某种操作引发回流(reflow)时，该线程就会执行</li>
+<li>JS引擎线程<br>  顾名思义，这个线程负责JS脚本的执行。<br>  浏览器无论什么时候都只有一个JS引擎在运行JS程序，我们平时所说的“js是单线程的”，指的就是这个线程。至于这个线程的执行过程，本文在后续的<a href="#由各线程之间的关系到事件循环详解">由各线程之间的关系到事件队列详解</a>会涉及。</li>
+<li>事件触发线程<br>  这个线程响应页面的用户操作，比如点击事件、键盘键入事件等，在事件发生之后，将绑定在该事件上（如果有）的回调函数推到任务队列里，等待JS引擎线程执行</li>
+<li>定时器触发线程<br>  也就是setTimeout和setInterval所在的线程。<br>  这个两个方法内的回调函数，会在计时器等待对应的时间之后，被推到任务队列里，等待JS引擎执行。由于JS引擎是单线程，只能一条一条地执行任务队列里的内容，不能保证任务队列不出现阻塞的情况，因此，只能保证定时器方法内的回调<em>在不小于规定的时间间隔内执行</em>。并且，W3C在HTML标准中规定，要求setTimeout中低于4ms的时间间隔算为4ms。</li>
+<li>异步http请求线程<br>在XMLHttpRequest在连接后是通过浏览器新开一个线程请求<br>将检测到状态变更时，如果设置有回调函数，异步线程就产生状态变更事件，将这个回调再放入任务队列中。再由JavaScript引擎执行。</li>
+</ul>
+<h3 id="由各线程之间的关系到事件循环详解"><a href="#由各线程之间的关系到事件循环详解" class="headerlink" title="由各线程之间的关系到事件循环详解"></a>由各线程之间的关系到事件循环详解</h3><ol>
+<li><p>GUI线程与JS引擎线程互斥<br>也就是说，GUI线程和JS引擎不能同时执行，他俩在某个时刻只允许其中一个运行。为什么要这样呢？试想，假如一个GUI线程正在由已知的DOM和CSS绘制页面，此时，JS引擎突然改变了DOM或CSS的内容，请你想想，GUI线程内心该有多崩溃。因此为了防止渲染出现不可预期的结果，浏览器设置GUI渲染线程与JS引擎为互斥的关系，当JS引擎执行时GUI线程会被挂起，GUI更新则会被保存在一个队列中等到JS引擎线程空闲时立即被执行。</p>
+</li>
+<li><p>由其他线程与JS引擎线程的关系引出事件循环（Event Loop）<br>首先，js引擎是单线程的，这意味着，所有有待处理的任务都需要排队，前一个任务执行完毕了，后一个任务才会执行。在内存中有专门的一块区域负责存储这些任务，这个区域又称为<code>执行栈（execution context stack）</code>。如果执行栈队头的任务需要消耗大量的时间，那么后续任务全都会被阻塞。因此，JavaScript语言的设计者意识到，可以把这些任务做一个区分，挂起等待中的任务，让后面的任务先执行。这样，任务被分成了<code>同步任务（synchronous ）</code>和<code>异步任务（asynchronous ）</code>。同步任务指的是，在执行栈上排队按顺序执行的任务，；异步任务指的是，不进入主线程、而进入<code>任务队列（task queue）</code>的任务，只有”任务队列”通知主线程，某个异步任务可以执行了，该任务才会进入主线程中的执行栈中，进行执行。</p>
+<p>每当在js脚本里监听了一个页面事件，或者开启了一个定时器，又或者打开了一个XMLHttpRequest，都相当于开启了一个异步任务。这些任务被推进任务队列里，排在前面的事件，优先被主线程读取。主线程的读取过程基本上是自动的，只要执行栈一清空，”任务队列”上第一位的事件就自动进入主线程。</p>
+<p>综上，我们可以总结出JS引擎的执行流程：</p>
+</li>
+</ol>
+<blockquote>
+<ul>
+<li><p>所有同步任务都在主线程上执行，形成一个执行栈。</p>
+</li>
+<li><p>主线程之外，还存在一个”任务队列”。只要异步任务有了运行结果，就在”任务队列”之中放置一个事件。</p>
+</li>
+<li><p>一旦”执行栈”中的所有同步任务执行完毕，系统就会读取”任务队列”，看看里面有哪些事件。那些对应的异步任务，于是结束等待状态，进入执行栈，开始执行。</p>
+</li>
+<li><p>主线程不断重复上面的第三步。</p>
+</li>
+</ul>
+</blockquote>
+<p>本篇文章引用了以下文献的内容：<br><a href="http://www.ruanyifeng.com/blog/2014/10/event-loop.html" target="_blank" rel="noopener" title="JavaScript 运行机制详解：再谈Event Loop——by 阮一峰">JavaScript 运行机制详解：再谈Event Loop——by 阮一峰</a><br><a href="https://segmentfault.com/a/1190000012925872" target="_blank" rel="noopener" title="从浏览器多进程到JS单线程，JS运行机制最全面的一次梳理——by  撒网要见鱼">从浏览器多进程到JS单线程，JS运行机制最全面的一次梳理——by  撒网要见鱼</a></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/projects_url">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#浏览器的多进程"><span class="toc-number">1.</span> <span class="toc-text">浏览器的多进程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#浏览器内核的多线程"><span class="toc-number">2.</span> <span class="toc-text">浏览器内核的多线程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#由各线程之间的关系到事件循环详解"><span class="toc-number">3.</span> <span class="toc-text">由各线程之间的关系到事件循环详解</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&text=浏览器里的进程与线程" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&title=浏览器里的进程与线程" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&is_video=false&description=浏览器里的进程与线程" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=浏览器里的进程与线程&body=Check out this article: http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&title=浏览器里的进程与线程" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&title=浏览器里的进程与线程" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&title=浏览器里的进程与线程" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&title=浏览器里的进程与线程" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&name=浏览器里的进程与线程&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://yoursite.com/2020/02/05/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%87%8C%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/&t=浏览器里的进程与线程" target="_blank" rel="noopener"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2020 John Doe
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/projects_url">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments -->
+
+
+</body>
+</html>
