@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+    <meta name="keywords" content="hexo, front-end, developer, blog" />
+    <title>
+        YiFan&#39;s Blog
+    </title>
+    <!-- favicon -->
+    
+    <link rel="icon" href="https://cdn.jsdelivr.net/gh/frontendsophie/hexo-theme-autumn@1.0.0/source/img/favicon.ico" />
+     
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- highlight -->
+    <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.12.0/styles/github-gist.min.css" />
+    <script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+    <script>
+        hljs.initHighlightingOnLoad()
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/frontendsophie/hexo-infinite-scroll@2.0.0/dist/main.js"></script>
+
+    <script>
+        infiniteScroll()
+
+        window.addEventListener('DOMContentLoaded', function () {
+            const [
+                mainTitle,
+                mobileMenu,
+                mobileMainTitle,
+                mobileMenuBtn,
+                ipadMenuBtn,
+                aside,
+                closeBtn,
+            ] = getEle(
+                '#main-title',
+                '.mobile-menu',
+                '.mobile-menu h3',
+                '.mobile-menu button',
+                '.ipad-menu',
+                'aside',
+                'aside .close',
+            )
+            const io = new IntersectionObserver(entries => {
+                if (entries[0].intersectionRatio <= 0) {
+                    mobileMainTitle.classList.remove('invisibile')
+                } else {
+                    mobileMainTitle.classList.add('invisibile')
+                }
+            })
+            io.observe(mainTitle)
+
+            clickToggleAside(mobileMenuBtn)
+            clickToggleAside(ipadMenuBtn)
+            clickToggleAside(closeBtn, false)
+
+            const isMenuVisible = window.getComputedStyle(mobileMenu).display !== 'none'
+            if (isMenuVisible) document.body.style.background = 'none'
+
+            function getEle(...args) {
+                return args.map(arg => document.querySelector(arg))
+            }
+
+            function clickToggleAside(btn, show = true) {
+                btn.addEventListener('click', function () {
+                    if (show) {
+                        aside.style.display = 'block'
+                    } else {
+                        aside.style.display = 'none'
+                    }
+                })
+            }
+        })
+    </script>
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body style="background: url(https://cdn.jsdelivr.net/gh/frontendsophie/hexo-theme-autumn@1.0.0/source/img/button-bg.png) #f3f3f3">
+    <div class="container">
+        <header class="header">
+    <nav class="mobile-menu" style="background: url(https://cdn.jsdelivr.net/gh/frontendsophie/hexo-theme-autumn@1.0.0/source/img/button-bg.png) #f3f3f3">
+        <h3 class="invisibile">
+            <a href="/" class="logo">
+                YiFan&#39;s Blog
+            </a>
+        </h3>
+        <button class="menu">menu</button>
+    </nav>
+
+    <button class="ipad-menu menu">menu</button>
+
+    <h1 class="title" id="main-title">
+        <a href="/" class="logo">
+            YiFan&#39;s Blog
+        </a>
+    </h1>
+    <h2 class="desc">
+        Just do it.
+    </h2>
+
+    <div class="links">
+        <ul>
+            
+            <li>
+                <a href="https://github.com/CathyZYF" target="_blank" rel="noopener">
+                    Github
+                </a>
+            </li>
+            
+            <li>
+                <a href="https://www.linkedin.com/in/%E8%AF%91%E5%B8%86-%E5%BC%A0-85a961133/" target="_blank" rel="noopener">
+                    LinkedIn
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</header>
+        <main class="main">
+            <article class="post">
+    
+    
+    
+    <h2 class="post-title">
+        关于DOM2级事件的事件捕获和事件冒泡
+    </h2>
+    <ul class="post-date">
+        <li>
+            2020-02-06
+        </li>
+        <li>
+            YiFan
+        </li>
+    </ul>
+    <div class="post-content">
+        <p>花一天时间研究完了DOM2级事件中addEventListener的执行机制，和大家讲讲多个addEventListener同时添加时的执行先后规律：<br><img src="https://live.staticflickr.com/65535/49492859026_e35a1c30ac_o.png" alt="enter image description here"><br>如图，大家都知道，W3c的DOM事件触发分为三个阶段：<br>  ①、事件捕获阶段，即由最顶层元素（一般是从window元素开始，有的浏览器是从document开始，至于其中的差别我稍后会更新）开始，逐次进入dom内部，最后到达目标元素，依次执行绑定在其上的事件<br>  ②、处于目标阶段，检测机制到达目标元素，按事件注册顺序执行绑定在目标元素上的事件。<br>   ③、事件冒泡阶段，从目标元素出发，向外层元素冒泡，最后到达顶层（window或document），依次执行绑定再其上的事件。</p>
+<p>在addEventListener中，利用第三个参数控制其是从哪个阶段开始，“true”是从捕获阶段开始，而“false”则是跳过捕获阶段，从冒泡阶段开始。<br>  看一个简单的例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">&lt;script type&#x3D;&quot;text&#x2F;javascript&quot;&gt;</span><br><span class="line">window.onload&#x3D;function()&#123;</span><br><span class="line">    var outer &#x3D; document.getElementById(&quot;outer&quot;);</span><br><span class="line">    var inner &#x3D; document.getElementById(&#39;inner&#39;);</span><br><span class="line"></span><br><span class="line">outer.addEventListener(&quot;click&quot;,   function()&#123;</span><br><span class="line">      alert(&quot;1&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">, true);</span><br><span class="line"></span><br><span class="line"> inner.addEventListener(&quot;click&quot;,      function()&#123;</span><br><span class="line">      alert(&quot;2&quot;);</span><br><span class="line">     &#125;</span><br><span class="line">, true);</span><br><span class="line"></span><br><span class="line"> outer.addEventListener(&quot;click&quot;,</span><br><span class="line">     function()&#123;</span><br><span class="line">        alert(&quot;3&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">,false)   </span><br><span class="line">&#125;</span><br><span class="line">&lt;&#x2F;script&gt;</span><br><span class="line"></span><br><span class="line">&lt;body&gt;</span><br><span class="line">    &lt;div id&#x3D;&quot;outer&quot;&gt;</span><br><span class="line">        &lt;div id&#x3D;&quot;inner&quot;&gt;&lt;&#x2F;div&gt;</span><br><span class="line">    &lt;&#x2F;div&gt;</span><br><span class="line">&lt;&#x2F;body&gt;</span><br></pre></td></tr></table></figure>
+<p> 在这个例子里，如果我们点击内层元素inner,那么处于捕获阶段的1最先弹出，接下来是目标元素2弹出，最后是处于冒泡阶段的3弹出，即：1，2，3.<br>  即使在代码里变换三个绑定事件的顺序，只要点击的是inner,这个执行顺序就不会变。</p>
+<p> 那么问题来了，如果点击的是外层outer的话呢？</p>
+<p> 要明白这个问题，我们必须明确一点：目标事件在哪一层，事件流就在哪一层回流，即使在outer事件下还有许多子孙节点，事件流都不会在outer之后往内流，此时，inner上的事件不会被触发，因此在这段代码中，只会弹出1和3。</p>
+<p>那么这两个数字哪个先弹呢？由于此时事件处于第二阶段，即“处于目标阶段”，弹出顺序取决的也不再是捕获或冒泡，而是谁在代码中先注册，因此，在这段代码中，弹出的是：1→3.</p>
+<p>综上所述，事件在DOM中的执行顺序为：外层捕获事件→内层捕获事件→先注册的目标事件→后注册的目标事件→内层冒泡事件→外层冒泡事件</p>
+<p> 让我们再看个例子来加深这个概念：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">&lt;script type&#x3D;&quot;text&#x2F;javascript&quot;&gt;</span><br><span class="line">window.onload&#x3D;function()&#123;</span><br><span class="line">    var outer &#x3D; document.getElementById(&quot;outer&quot;);</span><br><span class="line">    var inner &#x3D; document.getElementById(&#39;inner&#39;);</span><br><span class="line">    var oBox&#x3D;document.getElementById(&#39;box&#39;);</span><br><span class="line">    </span><br><span class="line">    oBox.addEventListener(&quot;click&quot;,function()&#123;</span><br><span class="line">        alert(&#39;1&#39;);</span><br><span class="line">    &#125;,true)</span><br><span class="line">    oBox.addEventListener(&quot;click&quot;,function()&#123;</span><br><span class="line">        alert(&#39;4&#39;);</span><br><span class="line">    &#125;,false)</span><br><span class="line">    </span><br><span class="line"></span><br><span class="line">    outer.addEventListener(&quot;click&quot;, function()&#123;</span><br><span class="line">      alert(&quot;2&quot;);</span><br><span class="line">    &#125;, true);</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    inner.addEventListener(&quot;click&quot;,function()&#123;</span><br><span class="line">        alert(&#39;3.2&#39;)</span><br><span class="line">    &#125;,false)</span><br><span class="line">    </span><br><span class="line"></span><br><span class="line">    inner.addEventListener(&quot;click&quot;, function()&#123;</span><br><span class="line">      alert(&quot;3.1&quot;);</span><br><span class="line">     &#125;, true);</span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line">&lt;&#x2F;script&gt;</span><br><span class="line"></span><br><span class="line">&lt;body&gt;</span><br><span class="line">    &lt;div id&#x3D;&quot;box&quot;&gt;</span><br><span class="line">        &lt;div id&#x3D;&quot;outer&quot;&gt;</span><br><span class="line">            &lt;div id&#x3D;&quot;inner&quot;&gt;&lt;&#x2F;div&gt;</span><br><span class="line">        &lt;&#x2F;div&gt;</span><br><span class="line">    &lt;&#x2F;div&gt;</span><br><span class="line">&lt;&#x2F;body&gt;</span><br></pre></td></tr></table></figure>
+<p>在这段代码里，box上的捕获事件最先执行，然后是outer上的捕获事件，然后是inner上先注册的事件，然后是inner上后注册的事件，最后是box上的冒泡事件<br>  弹出顺序为：1→2→3.2→3.1→4  </p>
+<p>补充一点，在ie8-中，由于addEventLister不起作用，我们使用attachEvent方法来绑定事件，此时在第二阶段，也就是处于目标阶段，如果目标元素上绑定了两个事件，那么其执行顺序和addEventLister相反：谁后注册谁先执行。       </p>
+
+    </div>
+</article>
+        </main>
+        <aside class="aside">
+            <div class="close"></div>
+            <section class="aside-section">
+                
+    <h1>Categories</h1>
+
+    <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%B5%8F%E8%A7%88%E5%99%A8%E6%B8%B2%E6%9F%93%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/">浏览器渲染的那些事</a></li></ul>
+
+            </section>
+            <section class="aside-section">
+                
+    <h1>Archives</h1>
+
+    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a></li></ul>
+
+
+            </section>
+            <section class="aside-section tag">
+                
+    <h1>Tags</h1>
+
+    <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/DOM%E4%BA%8B%E4%BB%B6/" rel="tag">DOM事件</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E4%BB%B6%E5%86%92%E6%B3%A1/" rel="tag">事件冒泡</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E4%BB%B6%E6%8D%95%E8%8E%B7/" rel="tag">事件捕获</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B5%8F%E8%A7%88%E5%99%A8/" rel="tag">浏览器</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B/" rel="tag">线程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BF%9B%E7%A8%8B/" rel="tag">进程</a></li></ul>
+
+            </section>
+        </aside>
+    </div>
+</body>
+
+</html>
