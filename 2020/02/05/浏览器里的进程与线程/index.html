@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+    <meta name="keywords" content="hexo, front-end, developer, blog" />
+    <title>
+        YiFan&#39;s Blog
+    </title>
+    <!-- favicon -->
+    
+    <link rel="icon" href="https://cdn.jsdelivr.net/gh/frontendsophie/hexo-theme-autumn@1.0.0/source/img/favicon.ico" />
+     
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- highlight -->
+    <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.12.0/styles/github-gist.min.css" />
+    <script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+    <script>
+        hljs.initHighlightingOnLoad()
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/frontendsophie/hexo-infinite-scroll@2.0.0/dist/main.js"></script>
+
+    <script>
+        infiniteScroll()
+
+        window.addEventListener('DOMContentLoaded', function () {
+            const [
+                mainTitle,
+                mobileMenu,
+                mobileMainTitle,
+                mobileMenuBtn,
+                ipadMenuBtn,
+                aside,
+                closeBtn,
+            ] = getEle(
+                '#main-title',
+                '.mobile-menu',
+                '.mobile-menu h3',
+                '.mobile-menu button',
+                '.ipad-menu',
+                'aside',
+                'aside .close',
+            )
+            const io = new IntersectionObserver(entries => {
+                if (entries[0].intersectionRatio <= 0) {
+                    mobileMainTitle.classList.remove('invisibile')
+                } else {
+                    mobileMainTitle.classList.add('invisibile')
+                }
+            })
+            io.observe(mainTitle)
+
+            clickToggleAside(mobileMenuBtn)
+            clickToggleAside(ipadMenuBtn)
+            clickToggleAside(closeBtn, false)
+
+            const isMenuVisible = window.getComputedStyle(mobileMenu).display !== 'none'
+            if (isMenuVisible) document.body.style.background = 'none'
+
+            function getEle(...args) {
+                return args.map(arg => document.querySelector(arg))
+            }
+
+            function clickToggleAside(btn, show = true) {
+                btn.addEventListener('click', function () {
+                    if (show) {
+                        aside.style.display = 'block'
+                    } else {
+                        aside.style.display = 'none'
+                    }
+                })
+            }
+        })
+    </script>
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body style="background: url(https://cdn.jsdelivr.net/gh/frontendsophie/hexo-theme-autumn@1.0.0/source/img/button-bg.png) #f3f3f3">
+    <div class="container">
+        <header class="header">
+    <nav class="mobile-menu" style="background: url(https://cdn.jsdelivr.net/gh/frontendsophie/hexo-theme-autumn@1.0.0/source/img/button-bg.png) #f3f3f3">
+        <h3 class="invisibile">
+            <a href="/" class="logo">
+                YiFan&#39;s Blog
+            </a>
+        </h3>
+        <button class="menu">menu</button>
+    </nav>
+
+    <button class="ipad-menu menu">menu</button>
+
+    <h1 class="title" id="main-title">
+        <a href="/" class="logo">
+            YiFan&#39;s Blog
+        </a>
+    </h1>
+    <h2 class="desc">
+        Just do it.
+    </h2>
+
+    <div class="links">
+        <ul>
+            
+            <li>
+                <a href="https://github.com/CathyZYF" target="_blank" rel="noopener">
+                    Github
+                </a>
+            </li>
+            
+            <li>
+                <a href="https://www.linkedin.com/in/%E8%AF%91%E5%B8%86-%E5%BC%A0-85a961133/" target="_blank" rel="noopener">
+                    LinkedIn
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</header>
+        <main class="main">
+            <article class="post">
+    
+    
+    <h4 class="post-cat">
+        <a href="/categories/%E6%B5%8F%E8%A7%88%E5%99%A8%E6%B8%B2%E6%9F%93%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/">
+            浏览器渲染的那些事
+        </a>
+    </h4>
+    
+    
+    <h2 class="post-title">
+        浏览器里的进程与线程
+    </h2>
+    <ul class="post-date">
+        <li>
+            2020-02-05
+        </li>
+        <li>
+            YiFan
+        </li>
+    </ul>
+    <div class="post-content">
+        <p>上章讲完了线程、进程以及两者的联系与区别，今天来讲讲浏览器里的进程与线程</p>
+<h3 id="浏览器的多进程"><a href="#浏览器的多进程" class="headerlink" title="浏览器的多进程"></a>浏览器的多进程</h3><p>首先明确一点，浏览器内是包含多个进程的。浏览器内进程的运行，依赖于系统为其分配的资源（CPU，内存等）。浏览器内包括哪些进程？下面我们一一列举：</p>
+<ul>
+<li>Browser进程<br>  这个进程是浏览器的主进程，可以控制其他进程的生成或销毁，在整个浏览器应用程序中只有一个。<br> 除了控制其他进程，Browser进程还负责与用户的交互，如前进、后退；控制网络资源的下载等。</li>
+<li>第三方插件进程<br>  这个进程随着浏览器第三方插件的安装而存在，每安装一个插件，都会生成对于的插件的进程</li>
+<li>GPU进程<br>  最多一个，负责3D绘制等</li>
+<li>Render进程<br>  这个进程又称浏览器渲染进程，也就是我们常说的 浏览器内核 。这个进程主要负责页面渲染、页面事件的处理、js脚本的执行等。我们每在浏览器里打开一个tab页，都会创建一个Render进程（如果打开的是多个空白页，可能出现多个进程合并的情况）</li>
+</ul>
+<h3 id="浏览器内核的多线程"><a href="#浏览器内核的多线程" class="headerlink" title="浏览器内核的多线程"></a>浏览器内核的多线程</h3><p>作为前端开发，在浏览器的众多进程中，我们需要详细深究的就是浏览器渲染进程啦。在每一个浏览器渲染进程中，都存在着不同种类的线程，这些线程互相作用，共同完成浏览器页面的渲染任务：</p>
+<ul>
+<li>GUI渲染线程<br>  负责渲染浏览器界面，解析HTML，CSS，构建DOM树和RenderObject树，布局和绘制等。<br>  当界面需要重绘（Repaint）或由于某种操作引发回流(reflow)时，该线程就会执行</li>
+<li>JS引擎线程<br>  顾名思义，这个线程负责JS脚本的执行。<br>  浏览器无论什么时候都只有一个JS引擎在运行JS程序，我们平时所说的“js是单线程的”，指的就是这个线程。至于这个线程的执行过程，本文在后续的<a href="#由各线程之间的关系到事件循环详解">由各线程之间的关系到事件队列详解</a>会涉及。</li>
+<li>事件触发线程<br>  这个线程响应页面的用户操作，比如点击事件、键盘键入事件等，在事件发生之后，将绑定在该事件上（如果有）的回调函数推到任务队列里，等待JS引擎线程执行</li>
+<li>定时器触发线程<br>  也就是setTimeout和setInterval所在的线程。<br>  这个两个方法内的回调函数，会在计时器等待对应的时间之后，被推到任务队列里，等待JS引擎执行。由于JS引擎是单线程，只能一条一条地执行任务队列里的内容，不能保证任务队列不出现阻塞的情况，因此，只能保证定时器方法内的回调<em>在不小于规定的时间间隔内执行</em>。并且，W3C在HTML标准中规定，要求setTimeout中低于4ms的时间间隔算为4ms。</li>
+<li>异步http请求线程<br>在XMLHttpRequest在连接后是通过浏览器新开一个线程请求<br>将检测到状态变更时，如果设置有回调函数，异步线程就产生状态变更事件，将这个回调再放入任务队列中。再由JavaScript引擎执行。</li>
+</ul>
+<h3 id="由各线程之间的关系到事件循环详解"><a href="#由各线程之间的关系到事件循环详解" class="headerlink" title="由各线程之间的关系到事件循环详解"></a>由各线程之间的关系到事件循环详解</h3><ol>
+<li><p>GUI线程与JS引擎线程互斥<br>也就是说，GUI线程和JS引擎不能同时执行，他俩在某个时刻只允许其中一个运行。为什么要这样呢？试想，假如一个GUI线程正在由已知的DOM和CSS绘制页面，此时，JS引擎突然改变了DOM或CSS的内容，请你想想，GUI线程内心该有多崩溃。因此为了防止渲染出现不可预期的结果，浏览器设置GUI渲染线程与JS引擎为互斥的关系，当JS引擎执行时GUI线程会被挂起，GUI更新则会被保存在一个队列中等到JS引擎线程空闲时立即被执行。</p>
+</li>
+<li><p>由其他线程与JS引擎线程的关系引出事件循环（Event Loop）<br>首先，js引擎是单线程的，这意味着，所有有待处理的任务都需要排队，前一个任务执行完毕了，后一个任务才会执行。在内存中有专门的一块区域负责存储这些任务，这个区域又称为<code>执行栈（execution context stack）</code>。如果执行栈队头的任务需要消耗大量的时间，那么后续任务全都会被阻塞。因此，JavaScript语言的设计者意识到，可以把这些任务做一个区分，挂起等待中的任务，让后面的任务先执行。这样，任务被分成了<code>同步任务（synchronous ）</code>和<code>异步任务（asynchronous ）</code>。同步任务指的是，在执行栈上排队按顺序执行的任务，；异步任务指的是，不进入主线程、而进入<code>任务队列（task queue）</code>的任务，只有”任务队列”通知主线程，某个异步任务可以执行了，该任务才会进入主线程中的执行栈中，进行执行。</p>
+<p>每当在js脚本里监听了一个页面事件，或者开启了一个定时器，又或者打开了一个XMLHttpRequest，都相当于开启了一个异步任务。这些任务被推进任务队列里，排在前面的事件，优先被主线程读取。主线程的读取过程基本上是自动的，只要执行栈一清空，”任务队列”上第一位的事件就自动进入主线程。</p>
+<p>综上，我们可以总结出JS引擎的执行流程：</p>
+</li>
+</ol>
+<blockquote>
+<ul>
+<li><p>所有同步任务都在主线程上执行，形成一个执行栈。</p>
+</li>
+<li><p>主线程之外，还存在一个”任务队列”。只要异步任务有了运行结果，就在”任务队列”之中放置一个事件。</p>
+</li>
+<li><p>一旦”执行栈”中的所有同步任务执行完毕，系统就会读取”任务队列”，看看里面有哪些事件。那些对应的异步任务，于是结束等待状态，进入执行栈，开始执行。</p>
+</li>
+<li><p>主线程不断重复上面的第三步。</p>
+</li>
+</ul>
+</blockquote>
+<p>本篇文章引用了以下文献的内容：<br><a href="http://www.ruanyifeng.com/blog/2014/10/event-loop.html" target="_blank" rel="noopener" title="JavaScript 运行机制详解：再谈Event Loop——by 阮一峰">JavaScript 运行机制详解：再谈Event Loop——by 阮一峰</a><br><a href="https://segmentfault.com/a/1190000012925872" target="_blank" rel="noopener" title="从浏览器多进程到JS单线程，JS运行机制最全面的一次梳理——by  撒网要见鱼">从浏览器多进程到JS单线程，JS运行机制最全面的一次梳理——by  撒网要见鱼</a></p>
+
+    </div>
+</article>
+        </main>
+        <aside class="aside">
+            <div class="close"></div>
+            <section class="aside-section">
+                
+    <h1>Categories</h1>
+
+    <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%B5%8F%E8%A7%88%E5%99%A8%E6%B8%B2%E6%9F%93%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/">浏览器渲染的那些事</a></li></ul>
+
+            </section>
+            <section class="aside-section">
+                
+    <h1>Archives</h1>
+
+    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a></li></ul>
+
+
+            </section>
+            <section class="aside-section tag">
+                
+    <h1>Tags</h1>
+
+    <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/DOM%E4%BA%8B%E4%BB%B6/" rel="tag">DOM事件</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E4%BB%B6%E5%86%92%E6%B3%A1/" rel="tag">事件冒泡</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E4%BB%B6%E6%8D%95%E8%8E%B7/" rel="tag">事件捕获</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag">内存管理</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" rel="tag">垃圾回收</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AF%B9%E8%B1%A1%E6%8B%B7%E8%B4%9D/" rel="tag">对象拷贝</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B5%85%E6%8B%B7%E8%B4%9D/" rel="tag">浅拷贝</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B5%8F%E8%A7%88%E5%99%A8/" rel="tag">浏览器</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B7%B1%E6%8B%B7%E8%B4%9D/" rel="tag">深拷贝</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B/" rel="tag">线程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BF%9B%E7%A8%8B/" rel="tag">进程</a></li></ul>
+
+            </section>
+        </aside>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+    <meta name="keywords" content="hexo, front-end, developer, blog" />
+    <title>
+        YiFan&#39;s Blog
+    </title>
+    <!-- favicon -->
+    
+    <link rel="icon" href="https://cdn.jsdelivr.net/gh/frontendsophie/hexo-theme-autumn@1.0.0/source/img/favicon.ico" />
+     
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- highlight -->
+    <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.12.0/styles/github-gist.min.css" />
+    <script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+    <script>
+        hljs.initHighlightingOnLoad()
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/frontendsophie/hexo-infinite-scroll@2.0.0/dist/main.js"></script>
+
+    <script>
+        infiniteScroll()
+
+        window.addEventListener('DOMContentLoaded', function () {
+            const [
+                mainTitle,
+                mobileMenu,
+                mobileMainTitle,
+                mobileMenuBtn,
+                ipadMenuBtn,
+                aside,
+                closeBtn,
+            ] = getEle(
+                '#main-title',
+                '.mobile-menu',
+                '.mobile-menu h3',
+                '.mobile-menu button',
+                '.ipad-menu',
+                'aside',
+                'aside .close',
+            )
+            const io = new IntersectionObserver(entries => {
+                if (entries[0].intersectionRatio <= 0) {
+                    mobileMainTitle.classList.remove('invisibile')
+                } else {
+                    mobileMainTitle.classList.add('invisibile')
+                }
+            })
+            io.observe(mainTitle)
+
+            clickToggleAside(mobileMenuBtn)
+            clickToggleAside(ipadMenuBtn)
+            clickToggleAside(closeBtn, false)
+
+            const isMenuVisible = window.getComputedStyle(mobileMenu).display !== 'none'
+            if (isMenuVisible) document.body.style.background = 'none'
+
+            function getEle(...args) {
+                return args.map(arg => document.querySelector(arg))
+            }
+
+            function clickToggleAside(btn, show = true) {
+                btn.addEventListener('click', function () {
+                    if (show) {
+                        aside.style.display = 'block'
+                    } else {
+                        aside.style.display = 'none'
+                    }
+                })
+            }
+        })
+    </script>
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body style="background: url(https://cdn.jsdelivr.net/gh/frontendsophie/hexo-theme-autumn@1.0.0/source/img/button-bg.png) #f3f3f3">
+    <div class="container">
+        <header class="header">
+    <nav class="mobile-menu" style="background: url(https://cdn.jsdelivr.net/gh/frontendsophie/hexo-theme-autumn@1.0.0/source/img/button-bg.png) #f3f3f3">
+        <h3 class="invisibile">
+            <a href="/" class="logo">
+                YiFan&#39;s Blog
+            </a>
+        </h3>
+        <button class="menu">menu</button>
+    </nav>
+
+    <button class="ipad-menu menu">menu</button>
+
+    <h1 class="title" id="main-title">
+        <a href="/" class="logo">
+            YiFan&#39;s Blog
+        </a>
+    </h1>
+    <h2 class="desc">
+        Just do it.
+    </h2>
+
+    <div class="links">
+        <ul>
+            
+            <li>
+                <a href="https://github.com/CathyZYF" target="_blank" rel="noopener">
+                    Github
+                </a>
+            </li>
+            
+            <li>
+                <a href="https://www.linkedin.com/in/%E8%AF%91%E5%B8%86-%E5%BC%A0-85a961133/" target="_blank" rel="noopener">
+                    LinkedIn
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</header>
+        <main class="main">
+            <article class="post">
+    
+    
+    
+    <h2 class="post-title">
+        聊聊JS垃圾回收机制
+    </h2>
+    <ul class="post-date">
+        <li>
+            2020-10-21
+        </li>
+        <li>
+            YiFan
+        </li>
+    </ul>
+    <div class="post-content">
+        <p>一晃眼到了2020年下半年，之前开通的blog现在已经长草了。懊恼之余，还是痛定思痛，奋起直追，好好写写博客和专栏。</p>
+<p>今天聊聊<strong>JavaScript的垃圾回收机制</strong></p>
+<p>首先明确一点，不同于C、C++这类需要人工管理内存的语言，JavaScript里的内存管理是自动进行的。正因如此，才有了今天我们介绍的<code>GC(Garbage Collection,垃圾回收)算法</code>。所谓垃圾回收机制，意思是把内存中不再有用的空间进行释放并再次利用起来。为了实现这个逻辑，在引擎内部势必存在一种判断内存空间是否“不再有用”的标准，这种不同的标准即不同的GC算法。在JavaScript实现中出现过多种GC算法，下面我们列举出最常见的几种。</p>
+<h3 id="1-引用计数算法"><a href="#1-引用计数算法" class="headerlink" title="1. 引用计数算法"></a>1. 引用计数算法</h3><pre><code>核心思想：在内部设置一个引用计数器，当每个对象空间的引用关系发生变化时，修改计数器的数值。当某个对象空间的引用数为0时，
+会立即触发垃圾回收机制，对这个对象空间进行回收。</code></pre><p>引用计数算法出现在早期的实现中，现在已经很少被用到。但我们依然可以通过学习这种算法，了解它的思想。下面举个例子来说明：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obj = &#123;<span class="attr">name</span>:<span class="string">'zhangsan'</span>&#125; <span class="comment">// 对象zhangsan被obj引用了一次</span></span><br><span class="line">   <span class="keyword">let</span> obj2 = obj1 <span class="comment">// 对象zhangsan被第二次引用，计数器值为2</span></span><br><span class="line">   </span><br><span class="line">   obj = <span class="literal">null</span> <span class="comment">// 解除obj到对象zhangsan的引用，zhangsan的引用计数器值变为1</span></span><br><span class="line">   obj2 = <span class="literal">null</span> <span class="comment">// 此时对象zhangsan的引用变为0，堆内存中存储zhangsan的空间将被当成垃圾回收</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>引用计数算法优缺点说明</strong></p>
+<p>优点：</p>
+<ol>
+<li>由于引用计数算法实时监控着内存空间的引用数，当引用数为0时，能立即回收该内存空间</li>
+<li>引用计数算法能最大程度减少程序的暂停 </li>
+</ol>
+<p>缺点：</p>
+<ol>
+<li>由于引用计数算法维护着一个计数器，它要时刻监控该数值是否需要修改，因此时间开销较大。</li>
+<li>不能解决循环引用的问题</li>
+</ol>
+<p>所谓的循环引用，可以用一个例子说明：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obj1=&#123;<span class="attr">value</span>:obj2&#125;</span><br><span class="line">   <span class="keyword">let</span> obj2=&#123;<span class="attr">value</span>:obj1&#125;</span><br><span class="line">   <span class="comment">// 这样就构成了一对循环引用。即使obj1和obj2所代表的对象空间在其他地方再没有被引用到，</span></span><br><span class="line">   <span class="comment">// 由于他们互相引用，这两个内存空间也不会被销毁。</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-标记清除算法"><a href="#2-标记清除算法" class="headerlink" title="2. 标记清除算法"></a>2. 标记清除算法</h3><pre><code>核心思想：将垃圾回收过程分为 标记 和 清除 两个阶段。在标记阶段，从根对象（全局对象）出发遍历所有对象，将所有可达对象
+做上标记。在清除阶段，同样会遍历所有对象，对没有标记的对象进行清除操作。</code></pre><p>这段定义里有两个关键概念：<strong>根对象</strong> 和 <strong>可达对象</strong>，下面依次给出解释：</p>
+<ul>
+<li>根对象：在JavaScript中可以认为是全局对象</li>
+<li>可达对象：从根对象出发，能够通过层层引用被访问到的对象。<br>好比全局对象上定义了一个变量obj1,其内部属性value指向了另一个对象obj2,在obj2中，又引用了obj3。在这条引用链上的所有对象，obj1,obj2,obj3都是可达对象，反之，如果某个对象不能通过根对象的引用找到，则为不可达对象，其内存空间将被当做垃圾回收。</li>
+</ul>
+<p><strong>标记清除算法优缺点说明</strong></p>
+<p>优点：</p>
+<p>可以回收循环引用的对象</p>
+<p>缺点：</p>
+<ol>
+<li>容易产生碎片化空间，浪费空间</li>
+<li>不会立即回收垃圾对象</li>
+</ol>
+<h3 id="3-标记整理算法"><a href="#3-标记整理算法" class="headerlink" title="3.标记整理算法"></a>3.标记整理算法</h3><p>标记整理算法是一种运用于v8引擎中的GC算法，它可以看做是标记清除算法的升级版。</p>
+<p>标记整理算法分为 标记 和 整理 两个阶段。其中的标记阶段和 标记清除 算法相同，都是将所有可达对象做上标记。<br>在整理阶段，将所有标记过的可达对象在内存空间上进行移动，使其占有连续的内存空间。</p>
+<h3 id="应用：-V8中的垃圾回收策略"><a href="#应用：-V8中的垃圾回收策略" class="headerlink" title="应用： V8中的垃圾回收策略"></a>应用： V8中的垃圾回收策略</h3><p>V8引擎是chrome浏览器内部和Node的JS执行引擎，其特性是运行高效，即时编译，并且内存设置了上限</p>
+<ul>
+<li>对64位操作系统上： 上限大约为1.5G</li>
+<li>对32位操作系统上： 上限大约为800M</li>
+</ul>
+<p>V8引擎的垃圾回收采用了 <strong>分代回收</strong> 的回收策略</p>
+<p>在V8内部，把内存空间分成了<code>新生代</code>和<code>老生代</code>区域,针对不同代采用不同的GC算法</p>
+<p><img src="//p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f24d035531b1434e919d5e9334468051~tplv-k3u1fbpfcp-zoom-1.image" alt="semispace"></p>
+<p>其中新生代区域空间较小，在64位操作系统上为32M,在32位操作系统上为16M，其中保存着<strong>存活时间较短的对象</strong>。</p>
+<p>v8将新生代空间均分为两个等大空间，使用中的空间称为from,空闲的空间称为to。当from空间使用达到一定上限，就会触发垃圾回收机制。V8新生代的垃圾回收采用的是Scavenge策略。</p>
+<p><strong>新生代对象回收实现</strong></p>
+<ol>
+<li><strong>标记阶段</strong>。将from空间中的活跃对象（使用中对象）进行标记，识别出等待回收的对象<br><img src="//p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d64a62c069f448b9942e9986b46c0af4~tplv-k3u1fbpfcp-zoom-1.image" alt="step1"></li>
+</ol>
+<ol start="2">
+<li><strong>排序整理阶段。</strong> <ul>
+<li>将from空间中的活跃对象拷贝到to空间中<br><img src="//p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0f3ec3d7f0f1494ab0139298d24d342a~tplv-k3u1fbpfcp-zoom-1.image" alt="step2.1"></li>
+<li>将from空间完全释放<br><img src="//p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/81d6a3de3457495eaa9a0f0cd505ad9a~tplv-k3u1fbpfcp-zoom-1.image" alt="step2.2"></li>
+</ul>
+</li>
+</ol>
+<ol start="3">
+<li><strong>交换阶段。</strong> 将from空间和to空间进行互换，完成本次垃圾回收操作。<br><img src="//p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4a13abce8c3b457892b383833c80b6a4~tplv-k3u1fbpfcp-zoom-1.image" alt="step3"></li>
+</ol>
+<p>与新生代区域不同，老生代区域存放的是活动时间较长的对象，比如全局对象、闭包等。</p>
+<p>与新生代区域一样，老生代内存区同样也存在大小限制，和进行垃圾回收的特有策略</p>
+<p>在64位操作系统中，老生代内存的存储上限是1.4G</p>
+<p>在32位操作系统中，老生代内存代存储上限是700M</p>
+<p><strong>新生代对象向老生代晋升</strong></p>
+<p>当新生代中一个对象多次出现在to空间里，或者当to空间内存超过25%时，该对象会被移入老生代空间。这种操作被成为<code>晋升</code>。</p>
+<p>默认情况下，程序生成的对象会首先被放置在from空间中。当进行垃圾回收，将对象们从from移至to时，会通过检查该对象的内存地址来判断该对象是否已经经历过一次Scavenge运算，如果是，则将该对象移至老生代空间。接下来，判断to空间是否超过25%,如果是，则仍将该对象移至老生代空间。</p>
+<p><img src="//p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/ac9ec6576722408eaeb0e0d68220a81e~tplv-k3u1fbpfcp-zoom-1.image" alt="晋升"></p>
+<p><strong>老生代对象回收实现</strong></p>
+<p>新生代对象中之所以能使用<strong>Scavenge算法</strong>这种利用空间来交换时间的算法，是因为新生代对象存储空间本身比较小，即使被一分为二，损失的存储空间也很有限。相比新生代的这种策略，老生代对象的存储空间更大，使用分代回收的话将会损失很大的存储空间，得不偿失。另外，由于老生代内存存储了大量对象，用这种算法复制对象，会使效率大幅降低。</p>
+<p>因此，老生代内存的垃圾回收，采用了与新生代不同的策略。具体来说，主要有<code>标记清除(mark-sweep)</code>和<code>标记整理(mark-compact)</code>两种算法。没错，就是文章前面提到的两种基本算法。<br>在此，我们用图示进一步说明这两种算法：</p>
+<ul>
+<li><p><strong>标记清除算法在老生代空间内的应用：</strong></p>
+<ol>
+<li>开始阶段，其中ABCDEF为已使用内存<br><img src="//p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/75bf8c9e655a4e44b7298b33430de4d2~tplv-k3u1fbpfcp-zoom-1.image" alt="sweep1"></li>
+<li>标记阶段，其中ACE为活跃对象，其余为待清除对象<br><img src="//p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/2ed01667e07e41d6abdcd81d8877cb69~tplv-k3u1fbpfcp-zoom-1.image" alt="sweep2"></li>
+<li>清除阶段，将待清除对象的空间释放<br><img src="//p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/91f31f09a40c458fb4e68339244957d9~tplv-k3u1fbpfcp-zoom-1.image" alt="sweep3"></li>
+</ol>
+</li>
+</ul>
+<pre><code>由以上图示不难发现，标记清除算法在每次清除过后，内存会出现不连续的状态。后续继续在老生代空间里分配内存时，如果需要分配一个大内存，由于剩余的碎片空间不足以完成此次分配，就会提前触发垃圾回收，而这次回收是不必要的。
+
+因此，在标记清除算法的基础上，又发展出标记整理算法。标记整理算法在标记阶段和清除算法是一样的。不同的是，在标记完活跃对象后，会将活跃对象移动到堆内存的另一端，然后将边界外的内存全部清除。</code></pre><ul>
+<li><p><strong>标记整理算法在老生代空间内的应用：</strong></p>
+<ol>
+<li>标记阶段，和标记清除算法一致。<br><img src="//p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/2ed01667e07e41d6abdcd81d8877cb69~tplv-k3u1fbpfcp-zoom-1.image" alt="compact1"></li>
+<li>整理阶段，将活跃对象拷贝直堆内存的另一端<br><img src="//p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bcaa2bd3395d4b93a02a3643b7a84de2~tplv-k3u1fbpfcp-zoom-1.image" alt="compact2"></li>
+<li>清除阶段，将拷贝对象边界外的内存清空<br><img src="//p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/ee1be1d533d24628b0aa9b9fd66d44f0~tplv-k3u1fbpfcp-zoom-1.image" alt="compact3"></li>
+</ol>
+</li>
+<li><p><strong>标记清除算法和标记整理算法的结合使用</strong></p>
+<p>  在取舍上，由于标记整理算法需要移动对象，所以速度不会很快；因此，老生代算法主要采用标记清除，当新生代晋升过来的对象大小大于老生代可用空间时，才启动标记整理算法。</p>
+</li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>以上就是关于JS垃圾回收机制的内容。总的来说，JavaScript中存在多种GC算法，在V8引擎中，主要利用了标记清除、标记整理和scavenge算法，分别对新生代和老生代内存进行垃圾回收。</p>
+<ul>
+<li><p>其中新生代采用scavenge算法，利用空间的损失换取时间上的优势。</p>
+</li>
+<li><p>老生代混合采用标记清除和标记整理算法，对保存至老生代空间的对象进行回收。</p>
+</li>
+<li><p>新生代空间内的对象满足一定条件，可用晋升至老生代空间。</p>
+</li>
+<li><p>另外在老版本的js引擎中，还使用过引用计数算法，目前已经不再使用。</p>
+</li>
+</ul>
+<p>写作时参考到的文章，感谢你们的帮助：</p>
+<p><a href="https://juejin.im/post/6844904016325902344" target="_blank" rel="noopener">一文搞懂V8引擎的垃圾回收 by 小维FE</a></p>
+<p><a href="https://juejin.im/post/6844903591510016007" target="_blank" rel="noopener">聊聊V8引擎的垃圾回收 by leocoder</a></p>
+
+    </div>
+</article>
+        </main>
+        <aside class="aside">
+            <div class="close"></div>
+            <section class="aside-section">
+                
+    <h1>Categories</h1>
+
+    <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%B5%8F%E8%A7%88%E5%99%A8%E6%B8%B2%E6%9F%93%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/">浏览器渲染的那些事</a></li></ul>
+
+            </section>
+            <section class="aside-section">
+                
+    <h1>Archives</h1>
+
+    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a></li></ul>
+
+
+            </section>
+            <section class="aside-section tag">
+                
+    <h1>Tags</h1>
+
+    <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/DOM%E4%BA%8B%E4%BB%B6/" rel="tag">DOM事件</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E4%BB%B6%E5%86%92%E6%B3%A1/" rel="tag">事件冒泡</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E4%BB%B6%E6%8D%95%E8%8E%B7/" rel="tag">事件捕获</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag">内存管理</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" rel="tag">垃圾回收</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AF%B9%E8%B1%A1%E6%8B%B7%E8%B4%9D/" rel="tag">对象拷贝</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B5%85%E6%8B%B7%E8%B4%9D/" rel="tag">浅拷贝</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B5%8F%E8%A7%88%E5%99%A8/" rel="tag">浏览器</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B7%B1%E6%8B%B7%E8%B4%9D/" rel="tag">深拷贝</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B/" rel="tag">线程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BF%9B%E7%A8%8B/" rel="tag">进程</a></li></ul>
+
+            </section>
+        </aside>
+    </div>
+</body>
+
+</html>
