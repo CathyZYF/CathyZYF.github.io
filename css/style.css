@@ -62,7 +62,7 @@ code {
 .header .links ul li {
   display: inline-block;
 }
-.header .links ul li:first-child::after {
+.header .links ul li:not(:last-child)::after {
   content: "\00B7";
   margin: 0 0.75em;
 }
